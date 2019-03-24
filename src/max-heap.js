@@ -15,17 +15,47 @@ class MaxHeap {
 	}
 
 	pop() {
-		if (this.sizeState) {
-
-		}
+		if (this.root) {
+			const detachedRoot  = this.detachRoot();
+			this.sizeState -= 1;
+			this.restoreRootFromLastInsertedNode(detachedRoot);
+			this.shiftNodeDown(this.root);
+			return detachedRoot.data;
+		} 
 	}
 
 	detachRoot() {
-		
+		if (this.root == this.parentNodes[0]) {
+			this.parentNodes.shift()
+		}
+		const detachedRoot = this.root;
+		this.root = null;
+		return detachedRoot;
 	}
 
 	restoreRootFromLastInsertedNode(detached) {
-		
+		if (this.parentNodes.length) {
+			const lastInsertedNode = this.parentNodes[this.parentNodes.length-1];
+			this.root = lastInsertedNode;
+			this.parentNodes.pop();
+			if (this.root.parent !== detached) {
+				if (this.parentNodes.indexOf(this.root.parent) < 0) {
+					this.parentNodes.unshift(this.root.parent);
+				}			
+			}
+			if (this.root.parent) {
+				this.root.parent.removeChild(this.root);
+			}		
+			if (detached.left) {
+				this.root.appendChild(detached.left);
+			}
+			if (detached.right) {
+				this.root.appendChild(detached.right);
+			}
+			if (!this.root.left || !this.root.right) {
+				this.parentNodes.unshift(this.root);
+			}
+		}
 	}
 
 	size() {
@@ -76,7 +106,30 @@ class MaxHeap {
 	}
 
 	shiftNodeDown(node) {
-		
+		if (node && node.left) {
+			let nodeChild;
+			if (!node.right || node.left.priority >= node.right.priority) {
+				nodeChild = node.left;
+			} else {
+				nodeChild = node.right;
+			}
+			if (nodeChild.priority > node.priority) {
+				nodeChild.swapWithParent();
+				if (!nodeChild.parent) {
+					this.root = nodeChild;
+				}
+				const nodeIndex = this.parentNodes.indexOf(node);
+				const childIndex = this.parentNodes.indexOf(nodeChild);
+
+				if (nodeIndex !== -1 && childIndex !== -1) {
+					this.parentNodes[nodeIndex] = nodeChild;
+					this.parentNodes[childIndex] = node;
+				} else {
+					this.parentNodes[childIndex] = node;
+				}
+				this.shiftNodeDown(node);
+			}
+		}
 	}
 }
 
